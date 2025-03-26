@@ -1,0 +1,4 @@
+pandas>=2.0.0
+flask>=3.0.0
+flask-bootstrap>=3.3.7.1
+gunicorn>=21.2.0 
