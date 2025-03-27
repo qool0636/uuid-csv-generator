@@ -1,118 +1,114 @@
-{% extends "bootstrap/base.html" %}
-
-{% block title %}UUID CSV 檔案生成器{% endblock %}
-
-{% block styles %}
-{{super()}}
-<style>
-    .container {
-        max-width: 800px;
-        margin-top: 50px;
-    }
-    .result {
-        margin-top: 20px;
-        display: none;
-    }
-    .loading {
-        display: none;
-        text-align: center;
-        margin: 20px 0;
-    }
-    .error {
-        color: red;
-        margin-top: 10px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container">
-    <h1 class="text-center">UUID CSV 檔案生成器</h1>
-    
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <form id="uuidForm" class="form-horizontal">
-                <div class="form-group">
-                    <label for="uuid" class="col-sm-2 control-label">UUID</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="uuid" name="uuid" placeholder="請輸入 UUID">
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV 產能增加包</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            border-color: #4a90e2;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #357abd;
+            border-color: #357abd;
+            transform: translateY(-2px);
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 10px 10px 0 0 !important;
+        }
+        h1 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+        .file-link {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4a90e2;
+            transition: all 0.3s ease;
+        }
+        .file-link:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">CSV 產能增加包</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">功能選單</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-3">
+                            <a href="/remove_vnext" class="btn btn-primary btn-lg">
+                                <i class="bi bi-trash"></i> Remove vNEXT Set
+                            </a>
+                            <a href="/subway_staging" class="btn btn-success btn-lg">
+                                <i class="bi bi-subway"></i> Subway Staging Set
+                            </a>
+                            <a href="/mcd_staging" class="btn btn-warning btn-lg">
+                                <i class="bi bi-cup-hot"></i> MCD Staging vNEXT
+                            </a>
+                        </div>
+                        <!-- 這裡可以繼續添加其他功能按鈕 -->
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-primary">生成檔案</button>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="loading">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">載入中...</span>
-                </div>
-                <p>正在生成檔案，請稍候...</p>
             </div>
-            
-            <div class="result">
-                <h3>檔案已生成：</h3>
-                <ul id="fileList" class="list-group">
-                </ul>
-            </div>
-            
-            <div class="error" id="errorMessage"></div>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block scripts %}
-{{super()}}
-<script>
-document.getElementById('uuidForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const uuid = document.getElementById('uuid').value;
-    const loading = document.querySelector('.loading');
-    const result = document.querySelector('.result');
-    const errorMessage = document.getElementById('errorMessage');
-    const fileList = document.getElementById('fileList');
-    
-    // 重置顯示
-    loading.style.display = 'block';
-    result.style.display = 'none';
-    errorMessage.textContent = '';
-    fileList.innerHTML = '';
-    
-    // 發送請求
-    fetch('/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `uuid=${encodeURIComponent(uuid)}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        loading.style.display = 'none';
-        
-        if (data.success) {
-            result.style.display = 'block';
-            data.files.forEach(file => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.innerHTML = `
-                    <a href="/download/${file}" class="btn btn-sm btn-success pull-right">下載</a>
-                    ${file}
-                `;
-                fileList.appendChild(li);
-            });
-        } else {
-            errorMessage.textContent = data.message;
-        }
-    })
-    .catch(error => {
-        loading.style.display = 'none';
-        errorMessage.textContent = '發生錯誤，請稍後再試';
-    });
-});
-</script>
-{% endblock %} 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

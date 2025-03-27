@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subway Staging Set - CSV 產能增加包</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            border-color: #4a90e2;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #357abd;
+            border-color: #357abd;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary {
+            color: #4a90e2;
+            border-color: #4a90e2;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-primary:hover {
+            background-color: #4a90e2;
+            border-color: #4a90e2;
+            transform: translateY(-2px);
+        }
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+        .file-link {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4a90e2;
+            transition: all 0.3s ease;
+        }
+        .file-link:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+            transform: translateX(5px);
+        }
+        .help-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .form-label {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .list-group-item {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .list-group-item:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+            transform: translateX(5px);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-2px);
+        }
+        .store-pair {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .remove-pair {
+            color: #dc3545;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .remove-pair:hover {
+            color: #c82333;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Subway Staging Set</h1>
+            <a href="/" class="btn btn-outline-primary">返回首頁</a>
+        </div>
+        
+        <form id="stagingForm">
+            <div class="mb-3">
+                <label for="country" class="form-label">Country</label>
+                <select class="form-select" id="country" name="country" required>
+                    <option value="">請選擇國家</option>
+                    <option value="AU">AU</option>
+                    <option value="NZ">NZ</option>
+                </select>
+                <div class="help-text">請選擇國家（AU 或 NZ）</div>
+            </div>
+
+            <div id="storePairs">
+                <div class="store-pair">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="form-label">Store UUID</label>
+                                <input type="text" class="form-control store-uuid" placeholder="請輸入 Store UUID" required>
+                                <div class="help-text">請輸入 UUID，系統會自動清理前後空格</div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="form-label">Partner ID</label>
+                                <input type="text" class="form-control partner-id" placeholder="請輸入 Partner ID（選填）">
+                                <div class="help-text">請輸入數字或數字加上 -0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-danger remove-pair mb-3" style="display: none;">
+                                <i class="bi bi-trash"></i> 刪除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-outline-primary" id="addPair">新增一組 Store UUID 和 Partner ID</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">生成檔案</button>
+        </form>
+        
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">載入中...</span>
+            </div>
+            <p>正在生成檔案，請稍候...</p>
+        </div>
+        
+        <div class="result">
+            <h3>檔案已生成：</h3>
+            <ul id="fileList" class="list-group">
+            </ul>
+        </div>
+        
+        <div class="error" id="errorMessage"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // 新增一組 Store UUID 和 Partner ID
+    document.getElementById('addPair').addEventListener('click', function() {
+        const storePairs = document.getElementById('storePairs');
+        const newPair = document.createElement('div');
+        newPair.className = 'store-pair';
+        newPair.innerHTML = `
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="mb-3">
+                        <label class="form-label">Store UUID</label>
+                        <input type="text" class="form-control store-uuid" placeholder="請輸入 Store UUID" required>
+                        <div class="help-text">請輸入 UUID，系統會自動清理前後空格</div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="mb-3">
+                        <label class="form-label">Partner ID</label>
+                        <input type="text" class="form-control partner-id" placeholder="請輸入 Partner ID（選填）">
+                        <div class="help-text">請輸入數字或數字加上 -0</div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger remove-pair mb-3">
+                        <i class="bi bi-trash"></i> 刪除
+                    </button>
+                </div>
+            </div>
+        `;
+        storePairs.appendChild(newPair);
+
+        // 為新添加的刪除按鈕添加事件監聽器
+        const removeButton = newPair.querySelector('.remove-pair');
+        removeButton.addEventListener('click', function() {
+            newPair.remove();
+        });
+    });
+
+    // 為所有刪除按鈕添加事件監聽器
+    document.querySelectorAll('.remove-pair').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.store-pair').remove();
+        });
+    });
+
+    // 表單提交處理
+    document.getElementById('stagingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const country = document.getElementById('country').value;
+        const storePairs = [];
+        
+        // 收集所有 Store UUID 和 Partner ID 對
+        document.querySelectorAll('.store-pair').forEach(pair => {
+            const storeUUID = pair.querySelector('.store-uuid').value.trim();
+            const partnerID = pair.querySelector('.partner-id').value.trim();
+            
+            if (storeUUID) {
+                storePairs.push({
+                    storeUUID: storeUUID,
+                    partnerID: partnerID || null
+                });
+            }
+        });
+        
+        const loading = document.querySelector('.loading');
+        const result = document.querySelector('.result');
+        const errorMessage = document.getElementById('errorMessage');
+        const fileList = document.getElementById('fileList');
+        
+        // 重置顯示
+        loading.style.display = 'block';
+        result.style.display = 'none';
+        errorMessage.textContent = '';
+        fileList.innerHTML = '';
+        
+        // 發送請求
+        fetch('/generate_subway', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                country: country,
+                storePairs: storePairs
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            
+            if (data.success) {
+                result.style.display = 'block';
+                data.files.forEach(file => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.innerHTML = `
+                        <a href="/download/${file}" class="btn btn-sm btn-success pull-right">下載</a>
+                        ${file}
+                    `;
+                    fileList.appendChild(li);
+                });
+            } else {
+                errorMessage.textContent = data.message;
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            errorMessage.textContent = '發生錯誤，請稍後再試';
+        });
+    });
+    </script>
+</body>
+</html> 
