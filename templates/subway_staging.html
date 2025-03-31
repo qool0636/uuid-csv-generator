@@ -196,6 +196,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // UUID 格式的正則表達式
+    const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
     // 新增一組 Store UUID 和 Partner ID
     document.getElementById('addPair').addEventListener('click', function() {
         const storePairs = document.getElementById('storePairs');
@@ -249,12 +252,16 @@
         
         // 收集所有 Store UUID 和 Partner ID 對
         document.querySelectorAll('.store-pair').forEach(pair => {
-            const storeUUID = pair.querySelector('.store-uuid').value.trim();
+            const storeUUIDInput = pair.querySelector('.store-uuid').value;
             const partnerID = pair.querySelector('.partner-id').value.trim();
             
-            if (storeUUID) {
+            // 清理並處理 UUID 輸入
+            const cleaned = storeUUIDInput.trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
+            const match = cleaned.match(uuidRegex);
+            
+            if (match) {
                 storePairs.push({
-                    storeUUID: storeUUID,
+                    storeUUID: match[0],
                     partnerID: partnerID || null
                 });
             }

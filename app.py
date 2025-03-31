@@ -245,8 +245,8 @@ def generate_subway():
                 'enableRDAcceptBeforePosInjection': '',
                 'enableRDOptional': '',
                 'forceOrderReleaseInSeconds': '',
-                'internalTags': '',
-                'storeTags': '"pos_api_order,pos_api_menu,pos_provider_subway_anz"',
+                'internalTags': 'pos_api_order,pos_api_menu,pos_provider_subway_anz',
+                'storeTags': 'eats_rdv2_whitelist,autopause_threshold_3,menu_editor_blacklist',
                 'isVisible': 'TRUE',
                 'allowSingleUseItemOptOut': 'FALSE',
                 'isAllergenFriendlinessEligible': '',
@@ -284,7 +284,7 @@ def generate_subway():
             store_tags_data.append({
                 'storeUUID': pair['storeUUID'],
                 'actionType': 'add',
-                'tagNames': '"rd_hide_menu_availability,rd_price_hide_adjust,ue_rx_rd_suppress_order_chimes"'
+                'tagNames': 'rd_hide_menu_availability,rd_price_hide_adjust,ue_rx_rd_suppress_order_chimes'
             })
         
         # 生成檔案名稱
