@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,31 +70,35 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header text-center py-3">
-                        <h4 class="mb-0">
-                            <i class="bi bi-cup-hot"></i> MCD Staging vNEXT
-                        </h4>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">
+                                <i class="bi bi-cup-hot"></i> MCD Staging vNEXT
+                            </h4>
+                            <a href="/" class="btn btn-outline-primary">Back to Home</a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <form id="mcdForm">
                             <div class="mb-3">
-                                <label for="country" class="form-label">國家</label>
+                                <label for="country" class="form-label">Country</label>
                                 <select class="form-select" id="country" required>
-                                    <option value="">請選擇國家</option>
+                                    <option value="">Please select a country</option>
                                     <option value="AU">AU</option>
                                     <option value="JP">JP</option>
+                                    <option value="JP-UAT">JP-UAT</option>
                                     <option value="NZ">NZ</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
                                 <label for="storeUUIDs" class="form-label">Store UUID</label>
-                                <textarea class="form-control" id="storeUUIDs" rows="5" placeholder="請輸入 Store UUID，每行一個" required></textarea>
-                                <div class="form-text">請輸入有效的 UUID 格式，可以一次貼多筆，每行一個</div>
+                                <textarea class="form-control" id="storeUUIDs" rows="5" placeholder="Please enter Store UUID, one per line" required></textarea>
+                                <div class="form-text">Please enter valid UUID format, you can paste multiple entries, one per line</div>
                             </div>
                             
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-warning">
-                                    <i class="bi bi-file-earmark-arrow-down"></i> 生成檔案
+                                    <i class="bi bi-file-earmark-arrow-down"></i> Generate Files
                                 </button>
                             </div>
                         </form>
@@ -103,11 +107,11 @@
                             <div class="spinner-border text-warning" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <p class="mt-2">正在生成檔案，請稍候...</p>
+                            <p class="mt-2">Generating files, please wait...</p>
                         </div>
                         
                         <div class="result">
-                            <h5>生成的檔案：</h5>
+                            <h5>Generated Files:</h5>
                             <ul class="file-list" id="fileList"></ul>
                         </div>
                     </div>
@@ -117,19 +121,19 @@
     </div>
 
     <script>
-        // UUID 格式的正則表達式
+        // UUID format regex
         const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
         document.getElementById('mcdForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // 清理並處理 UUID 輸入
+            // Clean and process UUID input
             const storeUUIDs = document.getElementById('storeUUIDs').value
                 .split('\n')
                 .map(line => {
-                    // 移除前後空格和特殊字符
+                    // Remove leading/trailing spaces and special characters
                     const cleaned = line.trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
-                    // 提取 UUID
+                    // Extract UUID
                     const match = cleaned.match(uuidRegex);
                     return match ? match[0] : '';
                 })
@@ -140,7 +144,7 @@
                 storeUUIDs: storeUUIDs
             };
             
-            // 顯示載入中
+            // Show loading
             document.querySelector('.loading').style.display = 'block';
             document.querySelector('.result').style.display = 'none';
             
@@ -163,7 +167,7 @@
                         li.innerHTML = `
                             <span>${file}</span>
                             <a href="/download/${file}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-download"></i> 下載
+                                <i class="bi bi-download"></i> Download
                             </a>
                         `;
                         fileList.appendChild(li);
@@ -173,7 +177,7 @@
                     alert(result.message);
                 }
             } catch (error) {
-                alert('發生錯誤：' + error.message);
+                alert('An error occurred: ' + error.message);
             } finally {
                 document.querySelector('.loading').style.display = 'none';
             }

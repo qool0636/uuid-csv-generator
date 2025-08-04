@@ -11,13 +11,13 @@ app = Flask(__name__)
 Bootstrap(app)
 
 def extract_uuid(text):
-    """從文本中提取 UUID"""
-    # UUID 的正則表達式模式
+    """Extract UUID from text"""
+    # UUID regex pattern
     uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
     match = re.search(uuid_pattern, text, re.IGNORECASE)
     if match:
         try:
-            # 驗證 UUID 格式
+            # Validate UUID format
             uuid_obj = uuid.UUID(match.group(0))
             return str(uuid_obj)
         except ValueError:
@@ -25,48 +25,48 @@ def extract_uuid(text):
     return None
 
 def clean_uuid(uuid_str):
-    """清理並驗證 UUID 格式"""
+    """Clean and validate UUID format"""
     try:
-        # 去除前後空格
+        # Remove leading/trailing spaces
         cleaned = uuid_str.strip()
-        # 驗證 UUID 格式
+        # Validate UUID format
         uuid_obj = uuid.UUID(cleaned)
         return str(uuid_obj)
     except ValueError:
         return None
 
 def generate_sample_data(store_uuids, client_id):
-    """生成與 Store UUID 和 Client ID 相關的示例數據"""
-    # 從每行文本中提取 UUID
+    """Generate sample data related to Store UUID and Client ID"""
+    # Extract UUID from each line of text
     valid_uuids = []
     for line in store_uuids:
-        # 先嘗試直接清理
+        # First try direct cleaning
         cleaned = clean_uuid(line)
         if cleaned:
             valid_uuids.append(cleaned)
         else:
-            # 如果直接清理失敗，嘗試提取
+            # If direct cleaning fails, try extraction
             extracted = extract_uuid(line)
             if extracted:
                 valid_uuids.append(extracted)
     
     if not valid_uuids:
-        raise ValueError("沒有找到有效的 UUID")
+        raise ValueError("No valid UUIDs found")
     
-    # 第一個檔案：簡單的 storeUUID 和 clientID 對應
+    # First file: Simple storeUUID and clientID mapping
     data1 = {
         'storeUUID': valid_uuids,
         'clientID': [client_id] * len(valid_uuids)
     }
     
-    # 第二個檔案：Remove Legacy Config 格式
+    # Second file: Remove Legacy Config format
     data2 = {
         'storeUUID': valid_uuids,
         'posTypes': ['UBER_API'] * len(valid_uuids),
         'removeDevUserWithOrderWebhook': ['TRUE'] * len(valid_uuids)
     }
     
-    # 第三個檔案：Update store tag 格式
+    # Third file: Update store tag format
     data3 = {
         'storeUUID': valid_uuids,
         'actionType': ['remove'] * len(valid_uuids),
@@ -76,27 +76,27 @@ def generate_sample_data(store_uuids, client_id):
     return data1, data2, data3
 
 def create_csv_files(store_uuids, client_id):
-    """創建 CSV 檔案並返回檔案路徑"""
-    # 創建下載目錄
+    """Create CSV files and return file paths"""
+    # Create download directory
     download_dir = 'downloads'
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
     
-    # 生成示例數據
+    # Generate sample data
     data1, data2, data3 = generate_sample_data(store_uuids, client_id)
     
-    # 創建 DataFrame 並保存為 CSV
+    # Create DataFrame and save as CSV
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
     df3 = pd.DataFrame(data3)
     
-    # 生成檔案名稱
+    # Generate file names
     timestamp = datetime.now().strftime('%Y%m%d')
     filename1 = f'Remove_vnext_{timestamp}.csv'
     filename2 = f'Remove_Legacy_Config_{timestamp}.csv'
     filename3 = f'Update_store_tag(menu_blacklist_removed)_{timestamp}.csv'
     
-    # 保存 CSV 檔案，使用 lineterminator='\n' 來避免最後的空行
+    # Save CSV files, use lineterminator='\n' to avoid trailing empty lines
     df1.to_csv(os.path.join(download_dir, filename1), index=False, lineterminator='\n')
     df2.to_csv(os.path.join(download_dir, filename2), index=False, lineterminator='\n')
     df3.to_csv(os.path.join(download_dir, filename3), index=False, lineterminator='\n')
@@ -119,6 +119,10 @@ def subway_staging():
 def mcd_staging():
     return render_template('mcd_staging.html')
 
+@app.route('/kfc_staging')
+def kfc_staging():
+    return render_template('kfc_staging.html')
+
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
@@ -129,13 +133,13 @@ def generate():
         if not store_uuids:
             return jsonify({
                 'success': False,
-                'message': '請至少輸入一個 Store UUID'
+                'message': 'Please enter at least one Store UUID'
             })
             
         if not client_id:
             return jsonify({
                 'success': False,
-                'message': '請輸入 Client ID'
+                'message': 'Please enter Client ID'
             })
         
         # 創建 CSV 檔案
@@ -144,7 +148,7 @@ def generate():
         return jsonify({
             'success': True,
             'files': [file1, file2, file3],
-            'message': '檔案生成成功！'
+            'message': 'Files generated successfully!'
         })
     except ValueError as e:
         return jsonify({
@@ -154,7 +158,7 @@ def generate():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'發生錯誤：{str(e)}'
+            'message': f'An error occurred: {str(e)}'
         })
 
 @app.route('/generate_subway', methods=['POST'])
@@ -167,13 +171,13 @@ def generate_subway():
         if not country:
             return jsonify({
                 'success': False,
-                'message': '請選擇國家'
+                'message': 'Please select a country'
             })
             
         if not store_pairs:
             return jsonify({
                 'success': False,
-                'message': '請至少輸入一組 Store UUID'
+                'message': 'Please enter at least one Store UUID pair'
             })
         
         # 驗證 Store UUID 格式
@@ -200,7 +204,7 @@ def generate_subway():
         if not valid_store_pairs:
             return jsonify({
                 'success': False,
-                'message': '沒有有效的 Store UUID'
+                'message': 'No valid Store UUIDs found'
             })
         
         # 創建下載目錄
@@ -302,12 +306,12 @@ def generate_subway():
         return jsonify({
             'success': True,
             'files': [filename1, filename2, filename3, filename4],
-            'message': '檔案生成成功！'
+            'message': 'Files generated successfully!'
         })
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'發生錯誤：{str(e)}'
+            'message': f'An error occurred: {str(e)}'
         })
 
 @app.route('/generate_mcd', methods=['POST'])
@@ -320,13 +324,13 @@ def generate_mcd():
         if not country:
             return jsonify({
                 'success': False,
-                'message': '請選擇國家'
+                'message': 'Please select a country'
             })
             
         if not store_uuids:
             return jsonify({
                 'success': False,
-                'message': '請至少輸入一個 Store UUID'
+                'message': 'Please enter at least one Store UUID'
             })
         
         # 驗證 Store UUID 格式
@@ -343,7 +347,7 @@ def generate_mcd():
         if not valid_uuids:
             return jsonify({
                 'success': False,
-                'message': '沒有有效的 Store UUID'
+                'message': 'No valid Store UUIDs found'
             })
         
         # 創建下載目錄
@@ -353,17 +357,27 @@ def generate_mcd():
         
         timestamp = datetime.now().strftime('%Y%m%d')
         
-        # 生成檔案名稱
-        filename1 = f'vNext_MCD_MENU_{timestamp}.csv'
-        filename2 = f'vNext_MCD_{country}_{timestamp}.csv'
+        # Generate file names based on country
+        if country == 'JP-UAT':
+            filename1 = f'vNext _ Configure Integration (with ClientID)_MCD_MENU_2_{timestamp}.csv'
+            filename2 = f'vNext _ Configure Integration (with ClientID)_MCDJPtest_{timestamp}.csv'
+        else:
+            filename1 = f'vNext_MCD_MENU_{timestamp}.csv'
+            filename2 = f'vNext_MCD_{country}_{timestamp}.csv'
         
-        # 準備第一個 CSV 數據
+        # Prepare first CSV data
         menu_data = []
         for store_uuid in valid_uuids:
+            # Set clientID based on country
+            if country == 'JP-UAT':
+                client_id = 'x4nT_rJm5E-7ftMbTd-hzKoR5uG9piI1'
+            else:
+                client_id = 'fPfDEQxws8cheEUBASpMnuBLcI1f_5iZ'
+            
             row = {
                 'storeUUID': store_uuid,
                 'isOrderManager': 'FALSE',
-                'clientID': 'fPfDEQxws8cheEUBASpMnuBLcI1f_5iZ',
+                'clientID': client_id,
                 'storeConfigurationData': '',
                 'externalIntegratorID': '',
                 'externalBrandID': '',
@@ -390,25 +404,41 @@ def generate_mcd():
             }
             menu_data.append(row)
         
-        # 準備第二個 CSV 數據
+        # Prepare second CSV data
         config_data = []
         for store_uuid in valid_uuids:
-            # 根據國家設置不同的配置
-            config = {
-                'client_id': 'auubereatshahajhdsfusbdau',
-                'isMenuV2': 'TRUE',
-                'market_id': country,
-                'posType': 'MCD',
-                'timeZone': '',
-                'urlprefix': 'https://ap-vendor.api.mcd.com',
-                'organization': 'mcd-apac',
-                'posStoreId': store_uuid
-            }
+            # Set configuration based on country
+            if country == 'JP-UAT':
+                config = {
+                    'client_id': 'usfgfwebdcsushgjgujhrgus',
+                    'isMenuV2': 'TRUE',
+                    'market_id': 'JP',
+                    'posType': 'MCD',
+                    'timeZone': '',
+                    'urlprefix': 'https://ap-uat-vendor.api.mcd.com',
+                    'organization': 'mcd-apac',
+                    'posStoreId': store_uuid
+                }
+                client_id = 'tiMNuVPfqMUjXBqtWp1f-2Yqkz5njKvc'
+                force_order_release = '30'
+            else:
+                config = {
+                    'client_id': 'auubereatshahajhdsfusbdau',
+                    'isMenuV2': 'TRUE',
+                    'market_id': country,
+                    'posType': 'MCD',
+                    'timeZone': '',
+                    'urlprefix': 'https://ap-vendor.api.mcd.com',
+                    'organization': 'mcd-apac',
+                    'posStoreId': store_uuid
+                }
+                client_id = 'sq2EuRvkQUBpmh6QkAH-sfktPCdFyupP'
+                force_order_release = ''
             
             row = {
                 'storeUUID': store_uuid,
                 'isOrderManager': 'TRUE',
-                'clientID': 'sq2EuRvkQUBpmh6QkAH-sfktPCdFyupP',
+                'clientID': client_id,
                 'storeConfigurationData': json.dumps(config),
                 'externalIntegratorID': '',
                 'externalBrandID': '',
@@ -420,7 +450,7 @@ def generate_mcd():
                 'enableAutoAccept': 'FALSE',
                 'enableRDAcceptBeforePosInjection': 'FALSE',
                 'enableRDOptional': 'TRUE',
-                'forceOrderReleaseInSeconds': '',
+                'forceOrderReleaseInSeconds': force_order_release,
                 'internalTags': '',
                 'storeTags': '',
                 'isVisible': 'TRUE',
@@ -442,12 +472,12 @@ def generate_mcd():
         return jsonify({
             'success': True,
             'files': [filename1, filename2],
-            'message': '檔案生成成功！'
+            'message': 'Files generated successfully!'
         })
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'發生錯誤：{str(e)}'
+            'message': f'An error occurred: {str(e)}'
         })
 
 @app.route('/download/<filename>')
@@ -461,8 +491,151 @@ def download_file(filename):
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'下載失敗：{str(e)}'
+            'message': f'Download failed: {str(e)}'
+        })
+
+@app.route('/generate_kfc', methods=['POST'])
+def generate_kfc():
+    try:
+        data = request.get_json()
+        store_pairs = data.get('storePairs', [])
+        
+        if not store_pairs:
+            return jsonify({
+                'success': False,
+                'message': 'Please enter at least one Store UUID and POS Store ID pair'
+            })
+        
+        # Validate Store UUID format
+        valid_store_pairs = []
+        for pair in store_pairs:
+            store_uuid = pair.get('storeUUID', '').strip()
+            pos_store_id = pair.get('posStoreId', '').strip()
+            
+            # Validate UUID format
+            try:
+                uuid_obj = uuid.UUID(store_uuid)
+                store_uuid = str(uuid_obj)
+            except ValueError:
+                continue
+            
+            # Validate POS Store ID
+            if not pos_store_id:
+                continue
+            
+            valid_store_pairs.append({
+                'storeUUID': store_uuid,
+                'posStoreId': pos_store_id
+            })
+        
+        if not valid_store_pairs:
+            return jsonify({
+                'success': False,
+                'message': 'No valid Store UUID and POS Store ID pairs found'
+            })
+        
+        # Create download directory
+        download_dir = 'downloads'
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+        
+        timestamp = datetime.now().strftime('%Y%m%d')
+        
+        # Generate file names
+        filename1 = f'vNext _ Configure Integration (with ClientID)_KFC_AU_{timestamp}.csv'
+        filename2 = f'vNext _ Configure Integration (with ClientID)_KFC_AU_Reporting_{timestamp}.csv'
+        
+        # Prepare first CSV data (main configuration)
+        config_data = []
+        for pair in valid_store_pairs:
+            store_uuid = pair['storeUUID']
+            pos_store_id = pair['posStoreId']
+            
+            # Create storeConfigurationData
+            config = {
+                'organization': 'kfc-aus-if',
+                'posStoreId': pos_store_id
+            }
+            
+            row = {
+                'storeUUID': store_uuid,
+                'isOrderManager': 'TRUE',
+                'clientID': 'yXhP8pXTnYAmH5P6J8QGaenKlwXz6Xcf',
+                'storeConfigurationData': json.dumps(config),
+                'externalIntegratorID': '',
+                'externalBrandID': '',
+                'merchantStoreID': '',
+                'overrideReason': 'Staging request',
+                'enableIntegration': 'TRUE',
+                'enableOrderRelease': 'TRUE',
+                'enablePOSDenyCancellations': 'FALSE',
+                'enableAutoAccept': '',
+                'enableRDAcceptBeforePosInjection': '',
+                'enableRDOptional': 'TRUE',
+                'forceOrderReleaseInSeconds': '',
+                'internalTags': 'pos_api_menu,pos_api_order',
+                'storeTags': 'menu_editor_blacklist',
+                'isVisible': 'FALSE',
+                'allowSingleUseItemOptOut': '',
+                'isAllergenFriendlinessEligible': '',
+                'requireSyncedMenu': '',
+                'preserveCurrentOrderConfig': '',
+                'apiVersion': '',
+                'acceptScheduledOrderEnabled': '',
+                'enableDeliveryStatusTracking': '',
+                'skipProvisioningWebhook': ''
+            }
+            config_data.append(row)
+        
+        # Prepare second CSV data (reporting)
+        reporting_data = []
+        for pair in valid_store_pairs:
+            store_uuid = pair['storeUUID']
+            
+            row = {
+                'storeUUID': store_uuid,
+                'isOrderManager': 'FALSE',
+                'clientID': 'JADcAk-io87KC_zE54FDL_HwLX8rmzNF',
+                'storeConfigurationData': '',
+                'externalIntegratorID': '',
+                'externalBrandID': '',
+                'merchantStoreID': '',
+                'overrideReason': 'Staging request',
+                'enableIntegration': 'TRUE',
+                'enableOrderRelease': 'FALSE',
+                'enablePOSDenyCancellations': 'FALSE',
+                'enableAutoAccept': '',
+                'enableRDAcceptBeforePosInjection': '',
+                'enableRDOptional': 'FALSE',
+                'forceOrderReleaseInSeconds': '',
+                'internalTags': '',
+                'storeTags': '',
+                'isVisible': 'TRUE',
+                'allowSingleUseItemOptOut': '',
+                'isAllergenFriendlinessEligible': '',
+                'requireSyncedMenu': '',
+                'preserveCurrentOrderConfig': '',
+                'apiVersion': '',
+                'acceptScheduledOrderEnabled': '',
+                'enableDeliveryStatusTracking': '',
+                'skipProvisioningWebhook': ''
+            }
+            reporting_data.append(row)
+        
+        # Save CSV files
+        pd.DataFrame(config_data).to_csv(os.path.join(download_dir, filename1), index=False, lineterminator='\n')
+        pd.DataFrame(reporting_data).to_csv(os.path.join(download_dir, filename2), index=False, lineterminator='\n')
+        
+        return jsonify({
+            'success': True,
+            'files': [filename1, filename2],
+            'message': 'Files generated successfully!'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
         })
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, port=8000) 
