@@ -494,6 +494,67 @@ def download_file(filename):
             'message': f'Download failed: {str(e)}'
         })
 
+@app.route('/generate_single', methods=['POST'])
+def generate_single():
+    try:
+        data = request.get_json()
+        store_uuids = data.get('storeUUIDs', [])
+        
+        if not store_uuids:
+            return jsonify({
+                'success': False,
+                'message': 'Please enter at least one Store UUID'
+            })
+        
+        # Validate Store UUID format
+        valid_uuids = []
+        for uuid_str in store_uuids:
+            try:
+                # Clean and validate UUID
+                cleaned = clean_uuid(uuid_str)
+                if cleaned:
+                    valid_uuids.append(cleaned)
+            except ValueError:
+                continue
+        
+        if not valid_uuids:
+            return jsonify({
+                'success': False,
+                'message': 'No valid Store UUIDs found'
+            })
+        
+        # Create download directory
+        download_dir = 'downloads'
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+        
+        timestamp = datetime.now().strftime('%Y%m%d')
+        
+        # Generate only the third file (Update store tag)
+        filename = f'Update_store_tag(menu_blacklist_removed)_{timestamp}.csv'
+        
+        # Prepare data for the third file
+        data3 = {
+            'storeUUID': valid_uuids,
+            'actionType': ['remove'] * len(valid_uuids),
+            'tagNames': ['menu_editor_blacklist'] * len(valid_uuids)
+        }
+        
+        # Save CSV file
+        df3 = pd.DataFrame(data3)
+        df3.to_csv(os.path.join(download_dir, filename), index=False, lineterminator='\n')
+        
+        return jsonify({
+            'success': True,
+            'files': [filename],
+            'message': 'File generated successfully!'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        })
+
 @app.route('/generate_kfc', methods=['POST'])
 def generate_kfc():
     try:
